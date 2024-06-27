@@ -211,36 +211,19 @@ class HBNBCommand(cmd.Cmd):
 
     def do_all(self, args):
         """ Shows all objects, or all objects of a class"""
-        print_list = []
+        objects = storage.all()
 
-        if isinstance(storage, DBStorage):
-            # For DBStorage
-            if args:
-                args = args.split(' ')[0]  # remove possible trailing args
-                if args not in HBNBCommand.classes:
-                    print("** class doesn't exist **")
-                    return
-                for obj in storage.all(args).values():
-                    print_list.append(str(obj))
-            else:
-                for obj in storage.all().values():
-                    print_list.append(str(obj))
+        commands = shlex.split(arg)
+
+        if len(commands) == 0:
+            for key, value in objects.items():
+                print(str(value))
+        elif commands[0] not in self.classes:
+            print("** class doesn't exist **")
         else:
-            # For FileStorage
-            if args:
-                args = args.split(' ')[0]  # remove possible trailing args
-                if args not in HBNBCommand.classes:
-                    print("** class doesn't exist **")
-                    return
-                for k, v in storage._FileStorage__objects.items():
-                    if k.split('.')[0] == args:
-                        print_list.append(str(v))
-            else:
-                for k, v in storage._FileStorage__objects.items():
-                    print_list.append(str(v))
-
-        print(print_list)
-
+            for key, value in objects.items():
+                if key.split('.')[0] == commands[0]:
+                    print(str(value))
 
     def help_all(self):
         """ Help information for the all command """

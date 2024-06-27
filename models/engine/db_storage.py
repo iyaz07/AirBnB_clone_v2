@@ -49,7 +49,14 @@ class DBStorage:
             query = self.__session.query(cls)
             for obj in query.all():
                 obj_key = '{}.{}'.format(obj.__class__.__name__, obj.id)
-                objects[obj_key] = obj
+                try:
+                    if obj.__class__.__name__ == 'state':
+                        del obj._sa_instance_state
+                        objects[obj_key] = obj
+                    else:
+                        objects[obj_key] = obj
+                except Exception:
+                    pass
         return objects
 
     def new(self, obj):
