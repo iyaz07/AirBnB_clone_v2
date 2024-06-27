@@ -7,4 +7,5 @@ from sqlalchemy.ext.declarative import declarative_base
 
 storage = DBStorage() if os.getenv(
         'HBNB_TYPE_STORAGE') == 'db' else FileStorage()
+
 storage.reload()
