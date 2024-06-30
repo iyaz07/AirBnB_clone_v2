@@ -2,6 +2,7 @@
 """ Console Module """
 import cmd
 import sys
+import shlex
 from models.base_model import BaseModel
 from models.__init__ import storage
 from models.engine.file_storage import FileStorage
@@ -117,24 +118,33 @@ class HBNBCommand(cmd.Cmd):
 
     def do_create(self, args):
         """ Create an object of any class"""
-        if not args:
-            print("** class name missing **")
-            return
-        """Split the arguments into class name and parameters"""
-        args_list = args.split()
-        if len(args_list) == 0:
+        try:
+            class_name = args.split(' ')[0]
+        except Indexerror:
+            pass
+        if not class_name:
             print("**class name missing**")
             return
-        class_name = args_list[0]
+        elif class_name not in HBNBCommand.classes:
+            print("** class doesn't exist **")
+            return
+        all_list = args.split(' ')
+
         new_instance = HBNBCommand.classes[class_name]()
-        for param in args_list[1:]:
-            try:
-                key, value = param.split("=")
-                value = value.replace("_", " ")
-                setattr(new_instance, key, eval(value))
-            except (ValueError, AttributeError):
-                pass
-        storage.save()
+        for i in range(1, len(all_list)):
+            key, value = tuple(all_list[i].split('='))
+            if value.startswith('"'):
+                value = value.strip('"').replace("_", " ")
+            else:
+                try:
+                    value = eval(value)
+                except Exception:
+                    print(f"** couldn't evaluate {value} **")
+                    pass
+            if hasattr(new_instance, key):
+                setattr(new_instance, key, value)
+                
+        storage.new(new_instance)
         print(new_instance.id)
         storage.save()
 
@@ -209,7 +219,7 @@ class HBNBCommand(cmd.Cmd):
         print("Destroys an individual instance of a class")
         print("[Usage]: destroy <className> <objectId>\n")
 
-    def do_all(self, args):
+    def do_all(self, arg):
         """ Shows all objects, or all objects of a class"""
         objects = storage.all()
 
