@@ -1,30 +1,59 @@
 #!/usr/bin/python3
-"""
-Fabric script based on the file 1-pack_web_static.py that distributes an
-archive to the web servers
-"""
+"""Fabric script that distributes archive web servers using do_deploy:"""
 
-from fabric.api import put, run, env
-from os.path import exists
+from fabric.api import *
+import os
+from datetime import datetime
+
+
 env.hosts = ['54.82.173.246', '18.234.80.21']
 
 
+def do_pack():
+    """generate a .tgz archive from contents of web_static folder"""
+
+    local('mkdir -p versions/')
+
+    Current = datetime.now()
+    Time = ""
+    Time += "{}{}{}".format(Current.year, Current.month, Current.day)
+    Time += "{}{}{}".format(Current.hour, Current.minute, Current.second)
+
+    file_name = "versions/web_static_{}.tgz".format(Time)
+
+    local('tar -cvzf {} web_static/'.format(file_name))
+    return file_name
+
+
 def do_deploy(archive_path):
-    """distributes an archive to the web servers"""
-    if exists(archive_path) is False:
-        return False
-    try:
-        file_n = archive_path.split("/")[-1]
-        no_ext = file_n.split(".")[0]
-        path = "/data/web_static/releases/"
+    """Deploys a web_static into an IP after being called by deploy"""
+
+    if os.path.exists(archive_path):
+
         put(archive_path, '/tmp/')
-        run('mkdir -p {}{}/'.format(path, no_ext))
-        run('tar -xzf /tmp/{} -C {}{}/'.format(file_n, path, no_ext))
-        run('rm /tmp/{}'.format(file_n))
-        run('mv {0}{1}/web_static/* {0}{1}/'.format(path, no_ext))
-        run('rm -rf {}{}/web_static'.format(path, no_ext))
+
+        archive_name = archive_path.split('/')[-1]
+        archive = archive_name.split('.')[0]
+        folder_name = '/data/web_static/releases/{}'.format(archive)
+
+        run('mkdir -p {}'.format(folder_name))
+        run('tar -xzf /tmp/{} -C {}'.format(archive_name, folder_name))
+
+        run('rm /tmp/{}'.format(archive_name))
+
+        run('mv {}/web_static/* {}'.format(folder_name, folder_name))
+        run('rm -rf {}/web_static'.format(folder_name))
+
         run('rm -rf /data/web_static/current')
-        run('ln -s {}{}/ /data/web_static/current'.format(path, no_ext))
+        run('ln -s {} /data/web_static/current'.format(folder_name))
+
         return True
-    except:
+    else:
         return False
+
+
+def deploy():
+    """distributes an archive to your web servers, using do_deploy"""
+
+    Path = do_pack()
+    return do_deploy(Path)
