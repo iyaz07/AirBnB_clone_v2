@@ -20,6 +20,6 @@ class State(BaseModel, Base):
         def cities(self):
             """ getter for Filestorage """
             import models
-            from models.city import city
+            from models.city import City
             return [city for city in models.storage.all(City).values() if
                 city.state_id == self.id]
