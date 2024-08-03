@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-""" module doc for a  web application must 
+""" module doc for a  web application must
 be listening on 0.0.0.0, port 5000
 and must have /states_list route to display a HTML page """
 
@@ -15,7 +15,6 @@ app = Flask(__name__)
 def hello():
     """ Returns a simple greeting message. """
     return "Hello HBNB!"
-
 
 
 @app.route("/hbnb", strict_slashes=False)
